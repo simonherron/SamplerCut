@@ -1,0 +1,6 @@
+module Pods_SampleClick {
+  umbrella header "Pods-SampleClick-umbrella.h"
+
+  export *
+  module * { export * }
+}
