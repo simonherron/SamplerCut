@@ -9,15 +9,15 @@ theWave = SoundFile("/Users/simonherron/Documents/Sampler/Piano/08/Spaced Omni_0
 
 output = ["Amp"]
 
-theWave.seek(407706000)
+theWave.seek(0)
 
-for b in theWave.blocks(blocksize = 200, frames = 4000000):
+for b in theWave.blocks(blocksize = 200, frames = 18000000):
     vals = b.T[0]
     m = np.mean(np.abs(vals))
     output.append(str(m))
 
 outputStr = "\n".join(output)
-outputFile = open("outputMistake200.csv", "wt")
+outputFile = open("outputVeryStart200.csv", "wt")
 outputFile.write(outputStr)
 outputFile.close()
 
