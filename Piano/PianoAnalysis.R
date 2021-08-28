@@ -1,0 +1,25 @@
+library(tidyverse)
+
+piano <- read.csv("/Users/simonherron/Documents/Sampler/Piano/PianoNoPedal.csv")
+
+#####
+v1 <- piano %>% filter(Velocity == "pp")
+v2 <- piano %>% filter(Velocity == "mp")
+v3 <- piano %>% filter(Velocity == "f")
+
+
+plot(v1 %>% select(MidiPitch, Duration), col = "green", ylim = c(0, 50))
+points(v2 %>% select(MidiPitch, Duration), col = "red")
+points(v3 %>% select(MidiPitch, Duration))
+
+
+
+##### 
+# png(filename = "/Users/simonherron/Documents/Sampler/Pressure.png", width = 700, height = 700)
+par(cex = 1.5)
+plot(v1 %>% select(MidiPitch, Max), ylim = c(0, 0.12), col = "green",
+     ylab = "Max Diaphram Pressure", pch = 20)
+points(v2 %>% select(MidiPitch, Max), col = "orange", pch = 20)
+points(v3 %>% select(MidiPitch, Max), col = "red", pch = 20)
+legend("topleft", horiz = T, legend = c("pp", "mp", "f"), pch = 20, col = c("green", "orange", "red"))
+# dev.off()
