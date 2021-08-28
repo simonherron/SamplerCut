@@ -15,13 +15,13 @@ def main():
     noteLines = open("/Users/simonherron/Documents/Sampler/Piano/PianoNoPedal.csv").read().split("\n")
     outputPath = "/Users/simonherron/Documents/Sampler/Piano/SpacedOmni/"
     firstPitch = 23.5
-    offSet = firstPitch - float(noteLines[1].split(",")[-2])
+    offSet = firstPitch - float(noteLines[1].split(",")[6])
     velocityLayers = ["pp", "mp", "f"]
 
     for noteIndex in range(1, len(noteLines)-1):
         noteComponents = noteLines[noteIndex].split(",")
-        if noteComponents[-1] != "d":
-            startIndex = (float(noteComponents[-2]) + offSet - 1) * 240 # 48000 / 200 = 240
+        if noteComponents[7] != "d":
+            startIndex = (float(noteComponents[6]) + offSet - 1) * 240 # 48000 / 200 = 240
             startIndex = int(startIndex)
             
             coolDown = 0

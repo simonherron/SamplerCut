@@ -1,7 +1,17 @@
-piano <- read.csv("/Users/simonherron/Documents/Sampler/Piano/PianoNoPedal.csv")
-piano$Index <- 1:579
-write.csv(piano, file = "/Users/simonherron/Documents/Sampler/Piano/PianoNoPedal.csv", quote = F)
-piano <- piano[,-8]
+piano <- read.csv("/Users/simonherron/Sampler/Piano/PianoNoPedal.csv", stringsAsFactors = F)
+stamps <- read.csv("/Users/simonherron/Sampler/Piano/Stamps.csv", header = F)
+stampsWrite <- unlist(lapply(as.vector(stamps$V1), strsplit, split = " "))
+stampsWrite <- stampsWrite[c(T, F)]
+stampsWrite <- replace(piano$Delete, piano$Delete == "", stampsWrite)
+stampsWrite <- replace(stampsWrite, stampsWrite == "", NA)
+piano$Stamp <- stampsWrite
+
+write.csv(piano, file = "/Users/simonherron/Documents/Sampler/Piano/PianoNoPedal.csv", quote = F, row.names = F, na = "")
+
+
+
+
+# piano <- piano[,-1]
 
 # veryStart: 0
 # start: 4850300
