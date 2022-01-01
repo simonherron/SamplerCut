@@ -5,6 +5,15 @@
       location = "container:WaveCut.py">
    </FileRef>
    <FileRef
-      location = "group:../../Documents/Sampler/WaveAnalysis.py">
+      location = "group:WaveAnalysis.py">
+   </FileRef>
+   <FileRef
+      location = "group:SpectrogramTest.py">
+   </FileRef>
+   <FileRef
+      location = "group:FFTCut.py">
+   </FileRef>
+   <FileRef
+      location = "group:FFTTest.py">
    </FileRef>
 </Workspace>

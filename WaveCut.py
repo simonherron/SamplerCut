@@ -4,8 +4,6 @@ import numpy as np
 import soundfile as sf
 from soundfile import SoundFile, SEEK_CUR
 
-
-
 def main():
     theWave = SoundFile("/Users/simonherron/Documents/Sampler/Piano/08/Spaced Omni_08.wav")
     print("Splitting Wave")

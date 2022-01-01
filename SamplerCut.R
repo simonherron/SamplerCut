@@ -14,7 +14,7 @@ write.csv(piano, file = "/Users/simonherron/Documents/Sampler/Piano/PianoNoPedal
 # piano <- piano[,-1]
 
 # veryStart: 0
-# start: 4850300
+# start: 04850300
 # middle: 179382000
 # middle_2: 169459000
 # end: 515675250

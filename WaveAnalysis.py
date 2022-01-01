@@ -9,8 +9,8 @@ from soundfile import SoundFile, SEEK_CUR
 # append to PianoNoPedal.csv as an "amplitude" column
 
 def main():
-    noteLines = open("/Users/simonherron/Documents/Sampler/Piano/PianoNoPedal.csv").read().split("\n")
-    outputPath = "/Users/simonherron/Documents/Sampler/Piano/SpacedOmni/"
+    noteLines = open("/Users/simonherron/Sampler/Piano/PianoNoPedal.csv").read().split("\n")
+    outputPath = "/Users/simonherron/Sampler/Piano/SpacedOmni/"
     velocityLayers = ["pp", "mp", "f"]
     
     for noteIndex in range(1, len(noteLines)-1):
@@ -38,7 +38,7 @@ def main():
             
 #            print(fileName + " Duration: " + str(theDuration) + " Max: " + str(theMax) + " at: " + str(maxLoc))
     
-    output = open("/Users/simonherron/Documents/Sampler/Piano/PianoNoPedalData.csv", "wt")
+    output = open("/Users/simonherron/Sampler/Piano/PianoNoPedalData.csv", "wt")
     output.write("\n".join(noteLines))
     output.close()
 
