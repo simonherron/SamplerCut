@@ -1,3 +1,5 @@
 *.wav
-*.csv
+*.png
+# *.csv
+*output*.csv
 Piano/Spaced Omni_08_data
