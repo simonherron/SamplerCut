@@ -38,11 +38,11 @@ def findTransientAndSilence(data, sampleRate):
     bLMean = np.mean(baseLine)
     bLSD = np.std(baseLine)
     
-    plt.axhline(y = bLMean, linestyle = "--", color = "purple")
-    plt.axhline(y = bLMean + 2*bLSD, linestyle = "--", color = "purple")
-    plt.axhline(y = bLMean + 3*bLSD, linestyle = "--", color = "purple")
-    plt.axhline(y = bLMean + 4*bLSD, linestyle = "--", color = "purple")
-    
+#    plt.axhline(y = bLMean, linestyle = "--", color = "purple")
+#    plt.axhline(y = bLMean + 2*bLSD, linestyle = "--", color = "purple")
+#    plt.axhline(y = bLMean + 3*bLSD, linestyle = "--", color = "purple")
+#    plt.axhline(y = bLMean + 4*bLSD, linestyle = "--", color = "purple")
+#
     for i in range(len(data)):
         if ((data[i] - bLMean) / bLSD) > 6:
             break
@@ -52,29 +52,29 @@ def findTransientAndSilence(data, sampleRate):
             break
                 
     transient = i
-    
-    testMeanX = []
-    testMeanY = []
-    testSDX = []
-    testSDY = []
+#
+#    testMeanX = []
+#    testMeanY = []
+#    testSDX = []
+#    testSDY = []
     
     for k in range(transient + 500, len(data)):
         if ((data[k] - bLMean) / bLSD) < 1:
             block = data[k : (k+200)]
             
             m = np.mean(block)
-            testMeanX.append(k)
-            testMeanY.append(m)
+#            testMeanX.append(k)
+#            testMeanY.append(m)
             if m < bLMean + 0.2 * bLSD:
                 
                 s = np.std(block)
-                testSDX.append(k)
-                testSDY.append(s)
+#                testSDX.append(k)
+#                testSDY.append(s)
                 if np.std(block) < 1.1 * bLSD:
                     break
     
-    plt.scatter(testMeanX, testMeanY, color = "red", zorder = 1)
-    plt.scatter(testSDX, bLMean - bLSD + testSDY, color = "pink", zorder = 2, marker = "s")
+#    plt.scatter(testMeanX, testMeanY, color = "red", zorder = 1)
+#    plt.scatter(testSDX, bLMean - bLSD + testSDY, color = "pink", zorder = 2, marker = "s")
     
     return (transient, k)
 
@@ -192,27 +192,27 @@ def cut():
 
 
 
-
-            plt.plot(peakHarmonics)
-            plt.scatter(range(len(bLHarmonics)), bLHarmonics, color = "red")
-            plt.show()
+#
+#            plt.plot(peakHarmonics)
+#            plt.scatter(range(len(bLHarmonics)), bLHarmonics, color = "red")
+#            plt.show()
         
             
             
             
             
             
-            plt.plot(newSignal, ".", zorder = 0)
+#            plt.plot(newSignal, ".", zorder = 0)
             
 
             
             trans, silence = findTransientAndSilence(newSignal, 48000 // fftBinSize)
             
-            plt.axvline(x = trans, linestyle = "--", color = "red")
-            plt.axvline(x = (48000 // fftBinSize) * 0.4, linestyle = "--", color = "green")
-            plt.axvline(x = silence, linestyle = "--", color = "orange")
-            plt.scatter(trans, newSignal[trans], color = "red", zorder = 2)
-            plt.show()
+#            plt.axvline(x = trans, linestyle = "--", color = "red")
+#            plt.axvline(x = (48000 // fftBinSize) * 0.4, linestyle = "--", color = "green")
+#            plt.axvline(x = silence, linestyle = "--", color = "orange")
+#            plt.scatter(trans, newSignal[trans], color = "red", zorder = 2)
+#            plt.show()
             
             
             
@@ -263,10 +263,10 @@ def cut():
 #            plt.axhline(y = 0, color = "black")
 #            plt.show()
             
-            fig, ax = plt.subplots()
-            mesh = ax.pcolormesh(xbins, freqs, logscale(data))
-            fig.colorbar(mesh, ax=ax)
-            plt.show()
+#            fig, ax = plt.subplots()
+#            mesh = ax.pcolormesh(xbins, freqs, logscale(data))
+#            fig.colorbar(mesh, ax=ax)
+#            plt.show()
             
           
 
