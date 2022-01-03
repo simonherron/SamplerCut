@@ -9,7 +9,8 @@ import numpy as np
 import os
 
 homeDir = os.path.dirname(__file__)
-
+if homeDir == "":
+    homeDir = "/home/simonherron"
 
 noteLines = open(homeDir + "/Piano/PianoNoPedalV1.csv").read().split("\n")
 
@@ -21,6 +22,19 @@ theWave = stereo[:,0]
 otherChannel = stereo[:,1]
 
 print("Cutting")
+
+def splitList(x, cores):
+    remainder = len(x) % cores
+    if remainder != 0:
+        x = np. append(x, np.repeat(None, cores - remainder))
+        
+    m = x.reshape((len(x) // cores, cores))
+    return m.transpose()
+
+
+splitList(np.arange(37), 4)
+
+
 
 def logscale(x):
     return 10*np.log10(x)
@@ -138,7 +152,7 @@ def isolateFreq(signal, freq, sampleRate):
     return np.abs(np.sum(signal * np.exp(-2j * np.pi * k * np.arange(N) / N)))
     
 
-def cut():
+def main():
     firstPitch = 23.5
     offSet = firstPitch - float(noteLines[1].split(",")[6])
     
@@ -189,19 +203,11 @@ def cut():
 #            freqs = freqs[keptHarmonics]
             newSignal = logscale(np.sum(data[keptHarmonics], axis = 0))
 
-
-
-
 #
 #            plt.plot(peakHarmonics)
 #            plt.scatter(range(len(bLHarmonics)), bLHarmonics, color = "red")
 #            plt.show()
-        
-            
-            
-            
-            
-            
+
 #            plt.plot(newSignal, ".", zorder = 0)
             
 
@@ -214,8 +220,7 @@ def cut():
 #            plt.scatter(trans, newSignal[trans], color = "red", zorder = 2)
 #            plt.show()
             
-            
-            
+   
             
             # Refine
             transFrame = (startFrame + trans * fftBinSize) + nfft
@@ -280,4 +285,4 @@ def cut():
    
 
 
-cut()
+main()
