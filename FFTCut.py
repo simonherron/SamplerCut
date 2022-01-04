@@ -10,15 +10,9 @@ import os
 
 homeDir = os.path.dirname(__file__)
 
-
 noteLines = open(homeDir + "/Piano/PianoNoPedalV1.csv").read().split("\n")
 
-print("Importing Wave")
 waveFile = SoundFile(homeDir + "/Piano/08/Spaced Omni_08.wav", mode = "rb")
-waveFile.seek(0)
-stereo = waveFile.read()
-theWave = stereo[:,0]
-otherChannel = stereo[:,1]
 
 print("Cutting")
 
@@ -108,11 +102,11 @@ def findZero(startFrame, direction):
     return nextFrame + change
     
 
-def freqData(startFrame, endFrame, targetFreq):
+def freqData(data, targetFreq):
     binSize = 2**6 # 2**6
     nfft = 2**14
     
-    xbins = np.arange(startFrame, endFrame, binSize)
+    xbins = np.arange(0, len(data), binSize)
     harmonics = 6
     freqs = targetFreq * np.arange(1, harmonics + 1)
     
@@ -120,7 +114,7 @@ def freqData(startFrame, endFrame, targetFreq):
     output = []
     
     for theBin in xbins:
-        signal = theWave[int(theBin) : (int(theBin) + nfft)] * window
+        signal = data[int(theBin) : (int(theBin) + nfft)] * window
         toAdd = []
         for f in freqs:
             toAdd.append(isolateFreq(signal, f, 48000))
@@ -138,7 +132,7 @@ def isolateFreq(signal, freq, sampleRate):
     return np.abs(np.sum(signal * np.exp(-2j * np.pi * k * np.arange(N) / N)))
     
 
-def cut():
+def main():
     firstPitch = 23.5
     offSet = firstPitch - float(noteLines[1].split(",")[6])
     
@@ -151,12 +145,17 @@ def cut():
         noteComponents = [velocity, repitition, sustain, midiPitch, pitch, time, delete]
         
         if delete != "d":
-            # DFT
+            # Import Wave
             startFrame = int((float(time) + offSet - 1) * 48000)
             endTime = noteLines[noteIndex + 1].split(",")[6] # start time of following pitch
             endFrame = (float(endTime) + offSet + 1) * 48000
-            targetFreq = 440 * 2**((int(midiPitch) - 69)/12) # A4 is midipitch 69
+            waveFile.seek(startFrame)
+            stereo = waveFile.read(endFrame - startFrame)
+            theWave = stereo[:,0]
+            otherChannel = stereo[:,1]
             
+            # DFT
+            targetFreq = 440 * 2**((int(midiPitch) - 69)/12) # A4 is midipitch 69
             xbins, fftBinSize, freqs, nfft, data = freqData(startFrame, endFrame, targetFreq)
             
             # Baseline
@@ -280,4 +279,4 @@ def cut():
    
 
 
-cut()
+main()
