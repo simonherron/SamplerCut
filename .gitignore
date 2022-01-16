@@ -3,5 +3,5 @@
 # *.csv
 *output*.csv
 Piano/Spaced Omni_08_data
-WaveSpace.xcworkspace*
+WaveSpace.xcworkspace
 .DS_Store
