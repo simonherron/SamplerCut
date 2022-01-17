@@ -16,7 +16,7 @@ noteLines = open(homeDir + "/Piano/PianoNoPedalV1.csv").read().split("\n")
 
 print("Importing")
 
-waveFile = SoundFile(homeDir + "/Piano/Raw/SpacedOmniDeNoised_1-007.wav", mode = "rb")i
+waveFile = SoundFile(homeDir + "/Piano/Raw/SpacedOmniDeNoised_1-007.wav", mode = "rb")
 
 def logscale(x):
     return 10*np.log10(x)
@@ -28,23 +28,23 @@ def vol(x):
         
     return o / (len(x) - 1)
     
-def findTransientAndSilence(data, sampleRate):
+def findTransientAndSilence(signal, sampleRate):
     baseLineEndBin = round(sampleRate * 0.4) # want 0.4 secs of base line
-    baseLine = data[:baseLineEndBin]
+    baseLine = signal[:baseLineEndBin]
     bLMean = np.mean(baseLine)
     bLSD = np.std(baseLine)
     
-#    plt.axhline(y = bLMean, linestyle = "--", color = "purple")
-#    plt.axhline(y = bLMean + 2*bLSD, linestyle = "--", color = "purple")
+    plt.axhline(y = bLMean, linestyle = "--", color = "purple")
+    plt.axhline(y = bLMean + 2*bLSD, linestyle = "--", color = "purple")
 #    plt.axhline(y = bLMean + 3*bLSD, linestyle = "--", color = "purple")
 #    plt.axhline(y = bLMean + 4*bLSD, linestyle = "--", color = "purple")
-#
-    for i in range(len(data)):
-        if ((data[i] - bLMean) / bLSD) > 6:
+
+    for i in range(len(signal)):
+        if ((signal[i] - bLMean) / bLSD) > 6:
             break
     
     for i in np.arange(i, 0, -1):
-        if ((data[i] - bLMean) / bLSD) < 3:
+        if ((signal[i] - bLMean) / bLSD) < 3:
             break
                 
     transient = i
@@ -54,9 +54,9 @@ def findTransientAndSilence(data, sampleRate):
     testSDX = []
     testSDY = []
     
-    for k in range(transient + 500, len(data)):
-        if ((data[k] - bLMean) / bLSD) < 1:
-            block = data[k : (k+200)]
+    for k in range(transient + 500, len(signal)):
+        if ((signal[k] - bLMean) / bLSD) < 1:
+            block = signal[k : (k+200)]
             
             m = np.mean(block)
             testMeanX.append(k)
@@ -73,6 +73,7 @@ def findTransientAndSilence(data, sampleRate):
     plt.scatter(testSDX, bLMean - bLSD + testSDY, color = "pink", zorder = 2, marker = "s")
     
     return (transient, k)
+
 
 def refineTransient(signal, trans, binSize, n, bLVol):
     binSize = 2**5
@@ -106,7 +107,7 @@ def findZero(signal, startFrame, direction):
 
 def freqData(data, freqs):
     binSize = 2**6
-    nfft = 2**14
+    nfft = 2**12 #2**14
     
     xbins = np.arange(0, len(data) - nfft, binSize)
     
@@ -166,48 +167,47 @@ def main():
             
             # Find Freqs to Isolate
             largestFreqInds = np.argpartition(freqMags, -6)[-6:] # gets indeces of the 6 strongest frequencies
-#            print(largestFreqInds)
-#            print(freqs[largestFreqInds])
             targetFreqs = freqs[largestFreqInds[np.where(freqMags[largestFreqInds] > 0.5)]]
-            print(targetFreqs)
+            print(np.sort(targetFreqs))
         
             
 #            backgroundNoiseCutoff = np.searchsorted(freqs, 1000) # Significant background noise below is 1000 Hz
 #            freqMagsBg = freqContributions[:backgroundNoiseCutoff]
 #            freqMagsNBg = freqContributions[backgroundNoiseCutoff:]
 #            freqs[np.where(freqMagsBg > 1]).extend(freqs[np.where(freqMagsBg > 0.001])
-#
-#            below
-#            freqsConditions = freqsConditions
             
             
             
-            plt.plot(freqs, freqMags)
+            plt.plot(freqs, freqMags, ".")
             for h in targetFreqs:
                 plt.axvline(x = h, linestyle = "--", color = "red")
             plt.show()
-#
+
+
 #            plt.specgram(theWave, Fs = 48000, NFFT = 2**12, interpolation = "none", noverlap = 2**12 - 2**6) #NFFT: 2**7, overlap: 2**6
 #            for h in targetFreqs:
 #                plt.axhline(y = h, linestyle = "--", color = "red")
 #            plt.show()
-#
+
             
             # Isolate Frequencies
-#            targetFreq = 441 * 2**((int(midiPitch) - 69)/12) # A4 is midipitch 69
             xbins, fftBinSize, freqs, nfft, data = freqData(theWave, targetFreqs)
-            
+            newSignal = np.sum(data, axis = 0)
+            newSignaldB = logscale(newSignal)
             
             # Baseline
             baseLineEndBin = round((48000 // fftBinSize) * 0.4)
             baseLineEndFrame = round(48000 * 0.4) # want 0.4 secs of base line
             rawBaseLine = theWave[:baseLineEndFrame]
             rawBLVol = vol(rawBaseLine)
-            bLHarmonics = logscale(np.mean(data[:baseLineEndBin], axis = 1))
+#            bLHarmonics = logscale(np.mean(data[:baseLineEndBin], axis = 1))
+            
+            
+            
             
             # Find Peak
-            allHarmonics = np.sum(data, axis = 0)
-            peak = np.argmax(allHarmonics)
+#            allHarmonics = np.sum(data, axis = 0)
+#            peak = np.argmax(allHarmonics)
             
             # Sort Harmonics
 #            peakHarmonics = logscale(np.mean(data[:, peak : (peak + 1)], axis = 1))
@@ -229,9 +229,6 @@ def main():
 
 
 
-            newSignal = logscale(np.sum(data, axis = 0))
-#            newSignaldB = logscale(newSignal)
-
 #
 #            plt.plot(peakHarmonics)
 #            plt.scatter(range(len(bLHarmonics)), bLHarmonics, color = "red")
@@ -239,13 +236,13 @@ def main():
         
        
             
-            plt.plot(newSignal, ".", zorder = 0)
+            plt.plot(newSignaldB, ".", zorder = 0)
     
             
-            trans, silence = findTransientAndSilence(newSignal, 48000 // fftBinSize)
+            trans, silence = findTransientAndSilence(newSignaldB, 48000 // fftBinSize)
             
             plt.axvline(x = trans, linestyle = "--", color = "red")
-#            plt.axvline(x = (48000 // fftBinSize) * 0.4, linestyle = "--", color = "green")
+            plt.axvline(x = baseLineEndBin, linestyle = "--", color = "green")
             plt.axvline(x = silence, linestyle = "--", color = "orange")
 #            plt.scatter(trans, newSignal[trans], color = "red", zorder = 2)
             plt.show()
@@ -262,6 +259,8 @@ def main():
             silenceFrame2 = findZero(theWave, silenceFrame, "f")
             
             # Calculate Meta Data
+            expectedFreq = 441 * 2**((int(midiPitch) - 69)/12) # A4 is midipitch 69
+            
             theSize = silenceFrame2 - transFrame3
             duration = theDuration = round(theSize / 48000, 2)
             
