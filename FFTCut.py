@@ -7,6 +7,7 @@ from soundfile import SoundFile
 import soundfile as sf
 import numpy as np
 import os
+from datetime import datetime
 
 homeDir = os.path.dirname(__file__)
 if homeDir == "":
@@ -35,9 +36,10 @@ def findTransientAndSilence(signal, sampleRate):
     bLSD = np.std(baseLine)
     
     plt.axhline(y = bLMean, linestyle = "--", color = "purple")
-    plt.axhline(y = bLMean + 2*bLSD, linestyle = "--", color = "purple")
+    plt.axhline(y = bLMean + bLSD, linestyle = "--", color = "purple")
+#    plt.axhline(y = bLMean + 2*bLSD, linestyle = "--", color = "purple")
 #    plt.axhline(y = bLMean + 3*bLSD, linestyle = "--", color = "purple")
-#    plt.axhline(y = bLMean + 4*bLSD, linestyle = "--", color = "purple")
+    plt.axhline(y = bLMean + 6*bLSD, linestyle = "--", color = "purple")
 
     for i in range(len(signal)):
         if ((signal[i] - bLMean) / bLSD) > 6:
@@ -61,7 +63,7 @@ def findTransientAndSilence(signal, sampleRate):
             m = np.mean(block)
             testMeanX.append(k)
             testMeanY.append(m)
-            if m < bLMean + 0.2 * bLSD:
+            if m < bLMean + 0.4 * bLSD:
                 
                 s = np.std(block)
                 testSDX.append(k)
@@ -133,6 +135,8 @@ def isolateFreq(signal, freq, sampleRate):
     
 
 def main():
+    startStamp = datetime.now()
+    
     print("Cutting")
     firstPitch = 27*60 + 36 #23.5
     offSet = firstPitch - float(noteLines[1].split(",")[6])
@@ -141,52 +145,37 @@ def main():
     outputPath = homeDir + "/Piano/SpacedOmni_Kontakt/"
     velocityLayers = ["pp", "mp", "f"]
     
-#    bgNoiseStartFrame = (firstPitch - 1) * 48000 - 2**15
-#    waveFile.seek(bgNoiseStartFrame)
-#    bgNoiseWave = waveFile.read(2**15)[:,0]
-#    bgNoiseProfile = np.abs(rfft(bgNoiseWave)[:2**14])
-    
-    for noteIndex in [2, 510]: # range(1, len(noteLines) - 1): # range(1, len(noteLines)-1): # #  #E2
+    for noteIndex in range(61, 65): #range(1, len(noteLines) - 1): # range(1, len(noteLines)-1): [4, 5, 189, 510]: #E2
         velocity, repitition, sustain, midiPitch, pitch, time, delete = noteLines[noteIndex].split(",")[1:-4]
         noteComponents = [velocity, repitition, sustain, midiPitch, pitch, time, delete]
         
         if delete != "d":
             # Import Wave
-            startFrame = int((float(time) + offSet - 1) * 48000)
+            startFrame = int((float(time) + offSet - 2) * 48000)
             endTime = noteLines[noteIndex + 1].split(",")[6] # start time of following pitch
-            endFrame = int((float(endTime) + offSet + 1) * 48000)
+            endFrame = int((float(endTime) + offSet) * 48000)
             waveFile.seek(startFrame)
-            stereo = waveFile.read(endFrame - startFrame)
+            stereo = waveFile.read((endFrame + 48000) - startFrame) # add 1 sec to endFrame for padding
             theWave = stereo[:,0]
             otherChannel = stereo[:,1]
             
+            
             # FFT
-            peak = np.argmax(theWave[:(3*48000)]) # look only in the first 3 seconds
+            peak = np.argmax(theWave[:(4*48000)]) # look only in the first 3 seconds
             freqMags = np.abs(rfft(theWave[peak : (peak + 2**14)])[:2**13]) # 0.35 secs of analysis space
             freqs = fftfreq(2**14, 1/48000)[0:(2**13)]
             
             # Find Freqs to Isolate
-            largestFreqInds = np.argpartition(freqMags, -6)[-6:] # gets indeces of the 6 strongest frequencies
+            largestFreqInds = np.argpartition(freqMags, -3)[-3:] # gets indeces of the 6 strongest frequencies
             targetFreqs = freqs[largestFreqInds[np.where(freqMags[largestFreqInds] > 0.5)]]
-            print(np.sort(targetFreqs))
-        
-            
-#            backgroundNoiseCutoff = np.searchsorted(freqs, 1000) # Significant background noise below is 1000 Hz
-#            freqMagsBg = freqContributions[:backgroundNoiseCutoff]
-#            freqMagsNBg = freqContributions[backgroundNoiseCutoff:]
-#            freqs[np.where(freqMagsBg > 1]).extend(freqs[np.where(freqMagsBg > 0.001])
+            targetFreqs = [np.max(targetFreqs)]
+#            print(np.sort(targetFreqs))
+                    
             
             
-            
-            plt.plot(freqs, freqMags, ".")
-            for h in targetFreqs:
-                plt.axvline(x = h, linestyle = "--", color = "red")
-            plt.show()
-
-
-#            plt.specgram(theWave, Fs = 48000, NFFT = 2**12, interpolation = "none", noverlap = 2**12 - 2**6) #NFFT: 2**7, overlap: 2**6
+#            plt.plot(freqs, freqMags, ".")
 #            for h in targetFreqs:
-#                plt.axhline(y = h, linestyle = "--", color = "red")
+#                plt.axvline(x = h, linestyle = "--", color = "red")
 #            plt.show()
 
             
@@ -194,6 +183,12 @@ def main():
             xbins, fftBinSize, freqs, nfft, data = freqData(theWave, targetFreqs)
             newSignal = np.sum(data, axis = 0)
             newSignaldB = logscale(newSignal)
+            
+#            plt.specgram(theWave, Fs = 48000, NFFT = nfft, interpolation = "none", noverlap = nfft - 2**6)
+#            for h in targetFreqs:
+#                plt.axhline(y = h, linestyle = "--", color = "red")
+#            plt.show()
+            
             
             # Baseline
             baseLineEndBin = round((48000 // fftBinSize) * 0.4)
@@ -204,47 +199,16 @@ def main():
             
             
             
-            
-            # Find Peak
-#            allHarmonics = np.sum(data, axis = 0)
-#            peak = np.argmax(allHarmonics)
-            
-            # Sort Harmonics
-#            peakHarmonics = logscale(np.mean(data[:, peak : (peak + 1)], axis = 1))
-#
-#            bLMean = np.mean(bLHarmonics)
-#            bLSD = np.std(bLHarmonics)
-#
-#            loudestHarmonic = np.argmax(peakHarmonics)
-#            h = loudestHarmonic
-#            for h in range(loudestHarmonic + 1, len(peakHarmonics)):
-#                if (peakHarmonics[h] - bLMean) / bLSD < 2:
-#                    h = h - 1
-#                    break
-#
-#            keptHarmonics = np.arange(0, h + 1) # in order to include h itself
-#            print(keptHarmonics)
-##            data = data[keptHarmonics]
-##            freqs = freqs[keptHarmonics]
-
-
-
-#
-#            plt.plot(peakHarmonics)
-#            plt.scatter(range(len(bLHarmonics)), bLHarmonics, color = "red")
-#            plt.show()
-        
        
             
             plt.plot(newSignaldB, ".", zorder = 0)
-    
+            
             
             trans, silence = findTransientAndSilence(newSignaldB, 48000 // fftBinSize)
-            
+ 
             plt.axvline(x = trans, linestyle = "--", color = "red")
             plt.axvline(x = baseLineEndBin, linestyle = "--", color = "green")
             plt.axvline(x = silence, linestyle = "--", color = "orange")
-#            plt.scatter(trans, newSignal[trans], color = "red", zorder = 2)
             plt.show()
             
             
@@ -252,10 +216,14 @@ def main():
             
             # Refine
             transFrame = (trans * fftBinSize) + nfft
+            print(transFrame + startFrame)
             transFrame2 = refineTransient(theWave, transFrame, fftBinSize, nfft, rawBLVol)
             transFrame3 = findZero(theWave, transFrame2, "b")
             
             silenceFrame = (silence * fftBinSize) + nfft
+            if silenceFrame > (endFrame - startFrame):
+                print("No silence found")
+                silenceFrame = (endFrame - startFrame)
             silenceFrame2 = findZero(theWave, silenceFrame, "f")
             
             # Calculate Meta Data
@@ -273,6 +241,7 @@ def main():
             # Write File
             nameComponents = ["Piano", "SpacedOmni", "NoPedal", midiPitch, pitch, str(velocityLayers.index(velocity) + 1), velocity, repitition]
             filePath = outputPath + velocity + "_" + repitition + "/" + "_".join(nameComponents) + ".wav"
+            nameComponents.insert(0, str(noteIndex))
             print(" ".join(nameComponents))
             toWrite = stereo[transFrame3 : silenceFrame2, :]
             sf.write(filePath, toWrite, 48000)
@@ -280,23 +249,21 @@ def main():
        
             
             
-#            print("Plotting")
-#            print(transFrame)
-#            print(transFrame2)
-#            print(transFrame3)
 
-#            print(silenceFrame2)
 
-            tf = int(transFrame)
-            tf2 = int(transFrame2)
-            plt.plot(range(tf + 4000), theWave[:(tf + 4000)])
-#            plt.ylim([-0.03, 0.03])
-            plt.axvline(x = tf, linestyle = "--", color = "red")
-            plt.axvline(x = tf2, linestyle = "--", color = "black")
-            plt.axvline(x = transFrame3, linestyle = "--", color = "purple")
-            plt.axvline(x = baseLineEndFrame, linestyle = "--", color = "green")
-            plt.axhline(y = 0, color = "black")
-            plt.show()
+
+
+#            tf = int(transFrame)
+#            tf2 = int(transFrame2)
+#            plt.plot(range(tf + 4000), theWave[:(tf + 4000)])
+##            plt.ylim([-0.03, 0.03])
+#            plt.axvline(x = tf, linestyle = "--", color = "red")
+#            plt.axvline(x = tf - nfft, linestyle = "--", color = "orange")
+#            plt.axvline(x = tf2, linestyle = "--", color = "black")
+#            plt.axvline(x = transFrame3, linestyle = "--", color = "purple")
+#            plt.axvline(x = baseLineEndFrame, linestyle = "--", color = "green")
+#            plt.axhline(y = 0, color = "black")
+#            plt.show()
             
 #            fig, ax = plt.subplots()
 #            mesh = ax.pcolormesh(xbins, freqs, logscale(data))
@@ -313,6 +280,7 @@ def main():
     outputCSVFile.write("\n".join(outputCSV))
     outputCSVFile.close()
    
+    print("Run Duration: " + str(datetime.now() - startStamp))
 
 
 main()
